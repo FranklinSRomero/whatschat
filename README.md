@@ -1,8 +1,12 @@
 # WhatsApp Desktop-style chat with NestJS + Meta Cloud API
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-0f6b5b?logo=github)](https://franklinsromero.github.io/whatschat/)
+
 WhatsChat is a local MVP that combines a WhatsApp Desktop-style single-page interface with a NestJS API, Prisma persistence, and Meta WhatsApp Cloud API integration.
 
 > **MVP boundary:** it is a development demo, not a production-ready WhatsApp client. Authentication and Meta webhook signature validation are not implemented.
+
+> **Live demo:** [open the standalone interface](https://franklinsromero.github.io/whatschat/). It uses in-browser mock data; the complete application requires the NestJS backend, Prisma, and the Meta Cloud API configuration.
 
 ## Interface
 

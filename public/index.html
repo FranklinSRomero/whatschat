@@ -340,6 +340,26 @@
         padding: 0 20px 10px;
       }
 
+      .demo-mode-banner {
+        display: none;
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        z-index: 10;
+        border: 1px solid rgba(15, 107, 91, 0.3);
+        border-radius: 999px;
+        padding: 7px 11px;
+        background: rgba(218, 245, 235, 0.94);
+        color: var(--accent);
+        box-shadow: 0 4px 12px rgba(31, 45, 41, 0.12);
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      html[data-demo-mode='true'] .demo-mode-banner {
+        display: block;
+      }
+
       @media (max-width: 940px) {
         .shell {
           width: 100vw;
@@ -403,7 +423,9 @@
     </main>
 
     <p id="errorText" class="error"></p>
+    <aside class="demo-mode-banner" role="status">Demo Mode · Datos de ejemplo</aside>
 
+    <script src="mock.js"></script>
     <script>
       const state = {
         conversations: [],
