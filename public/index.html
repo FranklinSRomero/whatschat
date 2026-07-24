@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WhatsChat Desktop</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-main: #f4efe4;
+        --bg-surface: #fffaf0;
+        --bg-chat: #efe6d7;
+        --accent: #0f6b5b;
+        --accent-soft: #c7eadf;
+        --ink: #1d312f;
+        --muted: #6f817d;
+        --bubble-in: #ffffff;
+        --bubble-out: #daf5eb;
+        --danger: #b42318;
+        --border: #d9d2c4;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: 'Outfit', sans-serif;
+        color: var(--ink);
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 8% 10%, rgba(15, 107, 91, 0.22), transparent 25%),
+          radial-gradient(circle at 95% 85%, rgba(175, 122, 58, 0.18), transparent 24%),
+          linear-gradient(160deg, #f0e5d2 0%, #f9f2e8 42%, #efe3ce 100%);
+      }
+
+      .shell {
+        width: min(1240px, calc(100vw - 32px));
+        height: min(92vh, 900px);
+        margin: 4vh auto;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid rgba(15, 107, 91, 0.2);
+        background: var(--bg-surface);
+        box-shadow:
+          0 24px 56px rgba(31, 45, 41, 0.2),
+          0 3px 0 rgba(255, 255, 255, 0.45) inset;
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        animation: shell-in 560ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
+      }
+
+      @keyframes shell-in {
+        from {
+          transform: translateY(14px) scale(0.99);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--border);
+        background: linear-gradient(180deg, #f7efe2 0%, #fdf8ef 100%);
+      }
+
+      .sidebar-header {
+        padding: 22px 20px 14px;
+        border-bottom: 1px solid rgba(217, 210, 196, 0.8);
+      }
+
+      .new-chat {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+      }
+
+      .new-chat input {
+        border-radius: 11px;
+        border: 1px solid rgba(15, 107, 91, 0.25);
+        padding: 10px;
+        font: inherit;
+        background: #fff;
+      }
+
+      .new-chat button {
+        border: none;
+        border-radius: 11px;
+        padding: 10px 12px;
+        font: inherit;
+        font-weight: 600;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+      }
+
+      .brand {
+        margin: 0;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.45rem;
+        letter-spacing: 0.4px;
+        color: var(--accent);
+      }
+
+      .subtitle {
+        margin: 6px 0 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .conversations {
+        overflow: auto;
+        padding: 10px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .conversation-item {
+        border: 1px solid rgba(15, 107, 91, 0.16);
+        border-radius: 15px;
+        padding: 12px;
+        background: #fffdf7;
+        cursor: pointer;
+        transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+      }
+
+      .conversation-item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px rgba(15, 107, 91, 0.12);
+      }
+
+      .conversation-item.active {
+        border-color: var(--accent);
+        background: #f0fbf7;
+      }
+
+      .conversation-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .contact-name {
+        margin: 0;
+        font-weight: 600;
+      }
+
+      .contact-meta {
+        margin: 4px 0 0;
+        font-size: 0.84rem;
+        color: var(--muted);
+      }
+
+      .chat-panel {
+        display: grid;
+        grid-template-rows: 72px 1fr 82px;
+        background: var(--bg-chat);
+        position: relative;
+      }
+
+      .chat-panel::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(135deg, rgba(15, 107, 91, 0.05) 25%, transparent 25%),
+          linear-gradient(225deg, rgba(15, 107, 91, 0.05) 25%, transparent 25%),
+          linear-gradient(315deg, rgba(15, 107, 91, 0.05) 25%, transparent 25%),
+          linear-gradient(45deg, rgba(15, 107, 91, 0.05) 25%, transparent 25%);
+        background-position:
+          10px 0,
+          10px 0,
+          0 0,
+          0 0;
+        background-size: 20px 20px;
+        opacity: 0.25;
+        pointer-events: none;
+      }
+
+      .chat-header,
+      .composer,
+      .messages {
+        position: relative;
+        z-index: 1;
+      }
+
+      .chat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(15, 107, 91, 0.12);
+        background: rgba(255, 250, 240, 0.92);
+        backdrop-filter: blur(6px);
+        padding: 0 22px;
+      }
+
+      .chat-title {
+        margin: 0;
+        font-size: 1.05rem;
+        font-weight: 600;
+      }
+
+      .chat-waid {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .status-pill {
+        border-radius: 999px;
+        border: 1px solid rgba(15, 107, 91, 0.3);
+        padding: 5px 10px;
+        font-size: 0.78rem;
+        color: var(--accent);
+        background: var(--accent-soft);
+      }
+
+      .messages {
+        overflow: auto;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .empty {
+        margin: auto;
+        border: 1px dashed rgba(15, 107, 91, 0.34);
+        background: rgba(255, 255, 255, 0.72);
+        color: var(--muted);
+        padding: 16px;
+        border-radius: 14px;
+      }
+
+      .msg {
+        max-width: min(72%, 650px);
+        padding: 10px 12px 8px;
+        border-radius: 14px;
+        line-height: 1.42;
+        animation: msg-in 220ms ease both;
+      }
+
+      @keyframes msg-in {
+        from {
+          transform: translateY(4px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .msg.inbound {
+        align-self: flex-start;
+        background: var(--bubble-in);
+        border: 1px solid rgba(15, 107, 91, 0.13);
+      }
+
+      .msg.outbound {
+        align-self: flex-end;
+        background: var(--bubble-out);
+        border: 1px solid rgba(15, 107, 91, 0.23);
+      }
+
+      .msg-text {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .msg-meta {
+        margin-top: 6px;
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+        font-size: 0.74rem;
+        color: var(--muted);
+      }
+
+      .composer {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        padding: 14px 18px;
+        border-top: 1px solid rgba(15, 107, 91, 0.18);
+        background: rgba(255, 250, 240, 0.92);
+        backdrop-filter: blur(8px);
+      }
+
+      .composer textarea {
+        resize: none;
+        border-radius: 14px;
+        border: 1px solid rgba(15, 107, 91, 0.26);
+        padding: 12px;
+        font: inherit;
+        min-height: 52px;
+        max-height: 120px;
+        background: #fff;
+      }
+
+      .composer button {
+        border: none;
+        border-radius: 14px;
+        min-width: 120px;
+        padding: 0 16px;
+        font: inherit;
+        font-weight: 600;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+        transition: filter 160ms ease, transform 160ms ease;
+      }
+
+      .composer button:hover:not(:disabled) {
+        filter: brightness(1.06);
+        transform: translateY(-1px);
+      }
+
+      .composer button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+
+      .error {
+        color: var(--danger);
+        font-size: 0.84rem;
+        padding: 0 20px 10px;
+      }
+
+      @media (max-width: 940px) {
+        .shell {
+          width: 100vw;
+          height: 100vh;
+          margin: 0;
+          border-radius: 0;
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          display: none;
+        }
+
+        .chat-panel {
+          grid-template-rows: 72px 1fr 96px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h1 class="brand">WhatsChat Desktop</h1>
+          <p class="subtitle">Meta Cloud API · NestJS</p>
+          <form id="newChatForm" class="new-chat">
+            <input
+              id="newChatInput"
+              type="text"
+              placeholder="Nuevo chat: 5215551234567"
+              autocomplete="off"
+            />
+            <button type="submit">Crear</button>
+          </form>
+        </div>
+        <section id="conversations" class="conversations"></section>
+      </aside>
+
+      <section class="chat-panel">
+        <header class="chat-header">
+          <div>
+            <h2 id="chatTitle" class="chat-title">Selecciona una conversación</h2>
+            <p id="chatWaid" class="chat-waid">Sin conversación activa</p>
+          </div>
+          <span class="status-pill">Polling activo</span>
+        </header>
+
+        <section id="messages" class="messages">
+          <div class="empty">Aún no hay mensajes para mostrar.</div>
+        </section>
+
+        <form id="composer" class="composer">
+          <textarea
+            id="messageInput"
+            placeholder="Escribe un mensaje"
+            autocomplete="off"
+          ></textarea>
+          <button id="sendBtn" type="submit" disabled>Enviar</button>
+        </form>
+      </section>
+    </main>
+
+    <p id="errorText" class="error"></p>
+
+    <script>
+      const state = {
+        conversations: [],
+        activeConversationId: null,
+        pollingTimer: null,
+        refreshEveryMs: 3000,
+      };
+
+      const refs = {
+        conversations: document.getElementById('conversations'),
+        messages: document.getElementById('messages'),
+        chatTitle: document.getElementById('chatTitle'),
+        chatWaid: document.getElementById('chatWaid'),
+        composer: document.getElementById('composer'),
+        messageInput: document.getElementById('messageInput'),
+        sendBtn: document.getElementById('sendBtn'),
+        errorText: document.getElementById('errorText'),
+        newChatForm: document.getElementById('newChatForm'),
+        newChatInput: document.getElementById('newChatInput'),
+      };
+
+      function formatTime(value) {
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) {
+          return '';
+        }
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+
+      function statusLabel(status) {
+        switch (status) {
+          case 'QUEUED':
+            return 'en cola';
+          case 'SENT':
+            return 'enviado';
+          case 'DELIVERED':
+            return 'entregado';
+          case 'READ':
+            return 'leido';
+          case 'FAILED':
+            return 'fallido';
+          case 'RECEIVED':
+            return 'recibido';
+          default:
+            return (status || '').toLowerCase();
+        }
+      }
+
+      async function api(path, options = {}) {
+        const response = await fetch(path, {
+          headers: { 'Content-Type': 'application/json' },
+          ...options,
+        });
+
+        if (!response.ok) {
+          const body = await response.text();
+          throw new Error(body || `Error HTTP ${response.status}`);
+        }
+
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          return null;
+        }
+
+        return response.json();
+      }
+
+      function renderConversations() {
+        refs.conversations.innerHTML = '';
+
+        if (!state.conversations.length) {
+          refs.conversations.innerHTML = '<div class="empty">No hay conversaciones aun.</div>';
+          return;
+        }
+
+        for (const conv of state.conversations) {
+          const item = document.createElement('article');
+          item.className = `conversation-item ${
+            conv.id === state.activeConversationId ? 'active' : ''
+          }`;
+
+          const title = conv.contact.name || conv.contact.waId;
+          const preview = conv.lastMessage?.text || '(sin mensajes)';
+          const time = conv.lastMessage?.createdAt
+            ? formatTime(conv.lastMessage.createdAt)
+            : formatTime(conv.updatedAt);
+
+          item.innerHTML = `
+            <div class="conversation-top">
+              <p class="contact-name">${escapeHtml(title)}</p>
+              <small>${escapeHtml(time)}</small>
+            </div>
+            <p class="contact-meta">${escapeHtml(conv.contact.waId)}</p>
+            <p class="contact-meta">${escapeHtml(preview.slice(0, 70))}</p>
+          `;
+
+          item.addEventListener('click', () => {
+            state.activeConversationId = conv.id;
+            refs.sendBtn.disabled = false;
+            refs.chatTitle.textContent = title;
+            refs.chatWaid.textContent = conv.contact.waId;
+            renderConversations();
+            loadMessages();
+          });
+
+          refs.conversations.appendChild(item);
+        }
+      }
+
+      function renderMessages(messages) {
+        refs.messages.innerHTML = '';
+
+        if (!messages.length) {
+          refs.messages.innerHTML = '<div class="empty">No hay mensajes en este chat.</div>';
+          return;
+        }
+
+        for (const msg of messages) {
+          const node = document.createElement('article');
+          node.className = `msg ${msg.direction === 'OUTBOUND' ? 'outbound' : 'inbound'}`;
+          node.innerHTML = `
+            <p class="msg-text">${escapeHtml(msg.text || '')}</p>
+            <div class="msg-meta">
+              <span>${escapeHtml(formatTime(msg.createdAt))}</span>
+              <span>${escapeHtml(statusLabel(msg.status))}</span>
+            </div>
+          `;
+          refs.messages.appendChild(node);
+        }
+
+        refs.messages.scrollTop = refs.messages.scrollHeight;
+      }
+
+      async function loadConversations() {
+        const conversations = await api('/api/chat/conversations');
+        state.conversations = Array.isArray(conversations) ? conversations : [];
+
+        if (!state.activeConversationId && state.conversations.length) {
+          const first = state.conversations[0];
+          state.activeConversationId = first.id;
+          refs.sendBtn.disabled = false;
+          refs.chatTitle.textContent = first.contact.name || first.contact.waId;
+          refs.chatWaid.textContent = first.contact.waId;
+        }
+
+        renderConversations();
+      }
+
+      async function loadMessages() {
+        if (!state.activeConversationId) {
+          renderMessages([]);
+          return;
+        }
+
+        const messages = await api(`/api/chat/conversations/${state.activeConversationId}/messages`);
+        renderMessages(Array.isArray(messages) ? messages : []);
+      }
+
+      function setError(message) {
+        refs.errorText.textContent = message || '';
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#39;');
+      }
+
+      refs.composer.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (!state.activeConversationId) {
+          setError('Selecciona una conversacion primero.');
+          return;
+        }
+
+        const text = refs.messageInput.value.trim();
+        if (!text) {
+          return;
+        }
+
+        refs.sendBtn.disabled = true;
+        setError('');
+
+        try {
+          await api('/api/chat/send', {
+            method: 'POST',
+            body: JSON.stringify({
+              conversationId: state.activeConversationId,
+              text,
+            }),
+          });
+
+          refs.messageInput.value = '';
+          await Promise.all([loadConversations(), loadMessages()]);
+        } catch (error) {
+          setError(error?.message || 'No se pudo enviar el mensaje.');
+        } finally {
+          refs.sendBtn.disabled = false;
+          refs.messageInput.focus();
+        }
+      });
+
+      refs.newChatForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const waIdRaw = refs.newChatInput.value.trim();
+        const waId = waIdRaw.replace(/[^0-9]/g, '');
+
+        if (!waId) {
+          setError('Ingresa un numero valido para crear el chat.');
+          return;
+        }
+
+        try {
+          setError('');
+          const conversation = await api('/api/chat/conversations', {
+            method: 'POST',
+            body: JSON.stringify({ waId }),
+          });
+
+          refs.newChatInput.value = '';
+          await loadConversations();
+
+          if (conversation?.id) {
+            state.activeConversationId = conversation.id;
+            refs.sendBtn.disabled = false;
+            refs.chatTitle.textContent = conversation.contact?.name || conversation.contact?.waId || waId;
+            refs.chatWaid.textContent = conversation.contact?.waId || waId;
+            renderConversations();
+            await loadMessages();
+          }
+        } catch (error) {
+          setError(error?.message || 'No se pudo crear la conversacion.');
+        }
+      });
+
+      async function tick() {
+        try {
+          await loadConversations();
+          await loadMessages();
+          setError('');
+        } catch (error) {
+          setError(error?.message || 'Error cargando datos');
+        }
+      }
+
+      async function bootstrap() {
+        await tick();
+
+        if (state.pollingTimer) {
+          clearInterval(state.pollingTimer);
+        }
+
+        state.pollingTimer = setInterval(tick, state.refreshEveryMs);
+      }
+
+      bootstrap();
+    </script>
+  </body>
+</html>
